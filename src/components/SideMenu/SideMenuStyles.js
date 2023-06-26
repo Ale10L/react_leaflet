@@ -69,4 +69,6 @@ export const InputContainerStyled = styled.div`
 
 export const ButtonListStyled = styled.button`
   cursor: pointer;
+  width: 40px;
+  height: 25px;
 `;

@@ -14,6 +14,9 @@ export const RightMenu = () => {
   const [poligonData, setPoligonData] = useState([]);
   const [poligonId, setPoligonId] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const clickedPoligonId = useSelector(
+    (state) => state.street.clickedPoligonId
+  );
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchPoligonos = async () => {
@@ -41,11 +44,14 @@ export const RightMenu = () => {
                 <PoligonNameContainer key={nombre.id}>
                   <PoligonName
                     onClick={() => {
-                      if (poligonId.find((p) => p !== nombre.id)) {
+                      dispatch(streetActions.clickedPoligonId(nombre.id));
+                      if (clickedPoligonId !== nombre.id) {
+                        dispatch(streetActions.clearData());
                         dispatch(streetActions.poligonData(nombre.id));
                       }
-
-                      console.log(poligonId);
+                    }}
+                    style={{
+                      color: nombre.id === clickedPoligonId ? "purple" : "gray",
                     }}
                   >
                     {nombre.name}

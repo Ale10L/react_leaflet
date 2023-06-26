@@ -10,6 +10,7 @@ export const POLIGON_DATA = "POLIGON_DATA";
 export const EDIT_MODE = "EDIT_MODE";
 export const UPDATE_COOR = "UPDATE_COOR";
 export const COORUPDATE = "COORUPDATE";
+export const CLICKED_POLIGON_ID = "CLICKED_POLIGON_ID";
 
 export const selectStreet = (street) => ({
   type: SELECT_STREET,
@@ -66,4 +67,9 @@ export const updateCoor = () => ({
 export const coorUpdate = (coor) => ({
   type: COORUPDATE,
   payload: coor,
+});
+
+export const clickedPoligonId = (id) => ({
+  type: CLICKED_POLIGON_ID,
+  payload: id,
 });

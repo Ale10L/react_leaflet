@@ -6,6 +6,7 @@ import {
   ADD_FORM_DATA,
   ADD_SELECTED_STREET,
   CLEAR_DATA,
+  CLICKED_POLIGON_ID,
   COORUPDATE,
   EDIT_MODE,
   POLIGON_DATA,
@@ -26,6 +27,7 @@ const INITIAL_STATE = {
   poligon: "",
   editMode: {},
   coorReplace: {},
+  clickedPoligonId: "",
 };
 
 export const streetReducer = (state = INITIAL_STATE, action) => {
@@ -53,7 +55,6 @@ export const streetReducer = (state = INITIAL_STATE, action) => {
     case CLEAR_DATA:
       return {
         ...state,
-        streets: [],
         coordenadas: [],
       };
     case TOGGLE_MENU:
@@ -94,6 +95,11 @@ export const streetReducer = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         coorReplace: action.payload,
+      };
+    case CLICKED_POLIGON_ID:
+      return {
+        ...state,
+        clickedPoligonId: action.payload,
       };
 
     default:
