@@ -19,7 +19,8 @@ export const FormStyled = styled.form`
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: center;
+  gap: 50px;
 `;
 
 export const ButtonAddStyled = styled.button`
@@ -48,10 +49,6 @@ export const RadioContainerStyled = styled.div`
   gap: 10px;
 `;
 
-export const LabelStyled = styled.label`
-  font-weight: 600;
-`;
-
 export const RadioStyled = styled.div`
   width: 100px;
   display: flex;
@@ -71,4 +68,28 @@ export const ButtonListStyled = styled.button`
   cursor: pointer;
   width: 40px;
   height: 25px;
+`;
+
+export const InputZoneContainerStyled = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const LabelStyled = styled.label`
+  font-weight: 600;
+`;
+
+export const InputZone = styled.input``;
+export const TextAreaZone = styled.textarea``;
+
+export const UpdateButtonStyled = styled.button`
+  font-size: 25px;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  color: red;
+  :hover {
+    color: green;
+  }
 `;

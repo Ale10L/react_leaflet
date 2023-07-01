@@ -14,7 +14,8 @@ model Poligono {
   id Int @id @default(autoincrement())
   name String @unique
   coordenadas Coordenada[] 
-  status String 
+  zone String 
+  description String
   createdAt DateTime @default(now())
 }
 

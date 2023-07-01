@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { BsFillPencilFill } from "react-icons/bs";
+import { RxUpdate } from "react-icons/rx";
 import { FcCancel } from "react-icons/fc";
 import {
   ButtonListStyled,
   FormStyled,
   InputContainerStyled,
+  InputZone,
+  InputZoneContainerStyled,
   LabelStyled,
   ListContainerStyled,
-  RadioContainerStyled,
-  RadioStyled,
   SideMenuContainerStyled,
   StreetsStyled,
+  TextAreaZone,
+  UpdateButtonStyled,
 } from "./SideMenuStyles";
 import { useDispatch, useSelector } from "react-redux";
 import * as streetActions from "../../redux/reducers/street/street.action";
@@ -22,16 +25,18 @@ import {
   updateCoordenadas,
   updatePoligono,
 } from "../../api/data";
+import { useForm } from "react-hook-form";
 
 export const SideMenu = () => {
   const dispatch = useDispatch();
   // const formData = useSelector((state) => state.street.formData);
   const coordenadas = useSelector((state) => state.street.coordenadas);
   const [nombre, setNombre] = useState("");
+  const [nombreZona, setNombreZona] = useState("");
+  const [zonaDescripcion, setZonaDescripcion] = useState("");
   const poligonId = useSelector((state) => state.street.poligon);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPoligono, setCurrentPoligono] = useState("");
-  const [radioValue, setRadioValue] = useState("activo");
   const editmode = useSelector((s) => s.street.editMode);
   const [coorId, setCoorId] = useState("");
 
@@ -39,7 +44,6 @@ export const SideMenu = () => {
     try {
       const data = await getPoligono(poligonId);
       setCurrentPoligono(data);
-      console.log(data.data.coordenadas.map((c) => c));
       setIsLoading(false);
     } catch (error) {
       console.log(error);
@@ -55,7 +59,8 @@ export const SideMenu = () => {
   useEffect(() => {
     if (!isLoading && currentPoligono) {
       setNombre(currentPoligono.data.name);
-      setRadioValue(currentPoligono.data.status);
+      setNombreZona(currentPoligono.data.zone);
+      setZonaDescripcion(currentPoligono.data.description);
       currentPoligono?.data.coordenadas.forEach((c) => {
         dispatch(
           streetActions.addCoordenadas({
@@ -69,6 +74,81 @@ export const SideMenu = () => {
     // eslint-disable-next-line
   }, [isLoading, currentPoligono]);
 
+  // USE FORM!!!!
+  const {
+    register,
+    handleSubmit,
+    clearErrors,
+    formState: { errors },
+  } = useForm();
+  const { onChange } = register(
+    "nombrePoligono",
+    "nombreZona",
+    "zonaDescripcion"
+  );
+
+  const onSubmit = async () => {
+    if (currentPoligono) {
+      try {
+        await updatePoligono(poligonId, {
+          name: nombre,
+          zone: nombreZona,
+          description: zonaDescripcion,
+        });
+
+        if (coorId) {
+          await deleteCoordenadas(coorId);
+        }
+        await Promise.all(
+          coordenadas.map(async (c) => {
+            isNaN(c.id)
+              ? await addCoordenadas({
+                  lat: c.lat,
+                  lon: c.lon,
+                  poligonoId: poligonId,
+                })
+              : await updateCoordenadas(c.id, {
+                  lat: c.lat,
+                  lon: c.lon,
+                });
+          })
+        );
+
+        dispatch(streetActions.selectStreet(""));
+        // Reiniciar la página
+        window.location.reload();
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      if (coordenadas.length) {
+        try {
+          const responsePoligono = await addPoligono({
+            name: nombre,
+            zone: nombreZona,
+            description: zonaDescripcion,
+          });
+
+          const poligonoId = responsePoligono.data.id;
+          await Promise.all(
+            coordenadas.map(async (c) => {
+              await addCoordenadas({
+                lat: c.lat,
+                lon: c.lon,
+                poligonoId: poligonoId,
+              });
+            })
+          );
+
+          dispatch(streetActions.selectStreet(""));
+          // Reiniciar la página
+          window.location.reload();
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+  };
   return (
     <SideMenuContainerStyled>
       <div
@@ -89,68 +169,7 @@ export const SideMenu = () => {
           x
         </button>
       </div>
-      <FormStyled
-        onSubmit={async (e) => {
-          e.preventDefault();
-
-          if (currentPoligono) {
-            try {
-              await updatePoligono(poligonId, {
-                name: nombre,
-                status: radioValue,
-              });
-
-              if (coorId) {
-                await deleteCoordenadas(coorId);
-              }
-              await Promise.all(
-                coordenadas.map(async (c) => {
-                  isNaN(c.id)
-                    ? await addCoordenadas({
-                        lat: c.lat,
-                        lon: c.lon,
-                        poligonoId: poligonId,
-                      })
-                    : await updateCoordenadas(c.id, {
-                        lat: c.lat,
-                        lon: c.lon,
-                      });
-                })
-              );
-
-              dispatch(streetActions.selectStreet(""));
-              // Reiniciar la página
-              window.location.reload();
-            } catch (error) {
-              console.log(error);
-            }
-          } else {
-            try {
-              const responsePoligono = await addPoligono({
-                name: nombre,
-                status: radioValue,
-              });
-
-              const poligonoId = responsePoligono.data.id;
-              await Promise.all(
-                coordenadas.map(async (c) => {
-                  await addCoordenadas({
-                    lat: c.lat,
-                    lon: c.lon,
-                    poligonoId: poligonoId,
-                  });
-                })
-              );
-
-              dispatch(streetActions.selectStreet(""));
-              // Reiniciar la página
-              window.location.reload();
-            } catch (error) {
-              console.log(error);
-            }
-          }
-        }}
-      >
+      <FormStyled onSubmit={handleSubmit(onSubmit)}>
         <InputContainerStyled>
           <label
             htmlFor="nombre-poligono"
@@ -159,14 +178,24 @@ export const SideMenu = () => {
             Nombre:
           </label>
           <input
+            {...register("nombrePoligono", {
+              required: true,
+              value: nombre,
+            })}
             type="text"
             id="nombre-poligono"
             onChange={(e) => {
               setNombre(e.target.value);
+              onChange(e);
+              clearErrors("nombrePoligono");
             }}
             placeholder="Ingrese el nombre de la zona"
             value={nombre}
           />
+
+          {errors.nombrePoligono?.type === "required" && (
+            <p style={{ color: "red", fontSize: "15px" }}>* Requerido</p>
+          )}
         </InputContainerStyled>
 
         <ListContainerStyled>
@@ -235,44 +264,45 @@ export const SideMenu = () => {
             );
           })}
         </ListContainerStyled>
-        <RadioContainerStyled>
-          <RadioStyled>
-            <input
-              type="radio"
-              id="activo"
-              name="opciones"
-              value="Activo"
-              checked={radioValue === "activo"}
-              readOnly={true}
-              onClick={() => setRadioValue("activo")}
-            />
-            <LabelStyled htmlFor="activo">Activo</LabelStyled>
-          </RadioStyled>
-          <RadioStyled>
-            <input
-              type="radio"
-              id="inactivo"
-              name="opciones"
-              value="Inactivo"
-              checked={radioValue === "inactivo"}
-              readOnly={true}
-              onClick={() => setRadioValue("inactivo")}
-            />
-            <LabelStyled htmlFor="inactivo">Inactivo</LabelStyled>
-          </RadioStyled>
-          <RadioStyled>
-            <input
-              type="radio"
-              id="reforzar"
-              name="opciones"
-              value="Reforzar"
-              checked={radioValue === "reforzar"}
-              readOnly={true}
-              onClick={() => setRadioValue("reforzar")}
-            />
-            <LabelStyled htmlFor="reforzar">Reforzar</LabelStyled>
-          </RadioStyled>
-        </RadioContainerStyled>
+        <InputZoneContainerStyled>
+          <InputZone
+            {...register("nombreZona", {
+              required: true,
+              value: nombreZona,
+            })}
+            type="text"
+            id="nombre-zone"
+            onChange={(e) => {
+              setNombreZona(e.target.value);
+              onChange(e);
+              clearErrors("nombreZona");
+            }}
+            placeholder="Ingrese el nombre de la zona"
+            value={nombreZona}
+          />
+          {errors.nombreZona?.type === "required" && (
+            <p style={{ color: "red", fontSize: "15px" }}>* Requerido</p>
+          )}
+          <TextAreaZone
+            style={{ resize: "none" }}
+            {...register("zonaDescripcion", {
+              required: true,
+              value: zonaDescripcion,
+            })}
+            type="text"
+            id="zona-descripcion"
+            onChange={(e) => {
+              setZonaDescripcion(e.target.value);
+              onChange(e);
+              clearErrors("zonaDescripcion");
+            }}
+            placeholder="Ingrese el nombre de la zona"
+            value={zonaDescripcion}
+          />
+          {errors.zonaDescripcion?.type === "required" && (
+            <p style={{ color: "red", fontSize: "15px" }}>* Requerido</p>
+          )}
+        </InputZoneContainerStyled>
         {currentPoligono ? (
           <button type="submit" style={{ cursor: "pointer" }}>
             Modificar
@@ -282,6 +312,15 @@ export const SideMenu = () => {
             Agregar
           </button>
         )}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <UpdateButtonStyled
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            <RxUpdate />
+          </UpdateButtonStyled>
+        </div>
       </FormStyled>
     </SideMenuContainerStyled>
   );

@@ -27,7 +27,7 @@ router.get("/coordenada/:id", async (req: Request, res: Response) => {
 router.put("/coordenada/:id", async (req: Request, res: Response) => {
   const updateCoordenada = await prisma.coordenada.update({
     where: {
-      id: +req.params.id,
+      id: parseInt(req.params.id),
     },
     data: req.body,
   });
